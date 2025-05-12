@@ -1,0 +1,446 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Visualizador Técnico - UTN</title>
+    <style>
+        :root {
+            --primary-color: #2c3e50;
+            --secondary-color: #3498db;
+            --accent-color: #e74c3c;
+            --light-bg: #f8f9fa;
+            --dark-text: #2c3e50;
+            --light-text: #ecf0f1;
+            --shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+            --transition: all 0.3s cubic-bezier(0.25, 0.8, 0.25, 1);
+        }
+        
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+        }
+        
+        body {
+            font-family: 'Roboto', 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background-color: var(--light-bg);
+            color: var(--dark-text);
+            line-height: 1.6;
+        }
+        
+        .container {
+            max-width: 1400px;
+            margin: 0 auto;
+            padding: 2rem;
+        }
+        
+        header {
+            text-align: center;
+            margin-bottom: 3rem;
+            position: relative;
+        }
+        
+        h1 {
+            font-size: 2.5rem;
+            font-weight: 700;
+            color: var(--primary-color);
+            margin-bottom: 1rem;
+            position: relative;
+            display: inline-block;
+        }
+        
+        h1::after {
+            content: '';
+            position: absolute;
+            bottom: -10px;
+            left: 50%;
+            transform: translateX(-50%);
+            width: 100px;
+            height: 4px;
+            background: var(--secondary-color);
+            border-radius: 2px;
+        }
+        
+        .button-group {
+            display: flex;
+            justify-content: center;
+            flex-wrap: wrap;
+            gap: 1rem;
+            margin-bottom: 2.5rem;
+        }
+        
+        .section-btn {
+            padding: 0.8rem 1.8rem;
+            background-color: var(--secondary-color);
+            color: white;
+            border: none;
+            border-radius: 50px;
+            cursor: pointer;
+            font-size: 1rem;
+            font-weight: 500;
+            transition: var(--transition);
+            box-shadow: var(--shadow);
+            position: relative;
+            overflow: hidden;
+        }
+        
+        .section-btn::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: -100%;
+            width: 100%;
+            height: 100%;
+            background: linear-gradient(90deg, transparent, rgba(255,255,255,0.2), transparent);
+            transition: 0.5s;
+        }
+        
+        .section-btn:hover {
+            transform: translateY(-3px);
+            box-shadow: 0 6px 12px rgba(0,0,0,0.15);
+        }
+        
+        .section-btn:hover::before {
+            left: 100%;
+        }
+        
+        .section-btn.active {
+            background-color: var(--primary-color);
+            box-shadow: 0 4px 8px rgba(0,0,0,0.2);
+        }
+        
+        .image-section {
+            display: none;
+            background-color: white;
+            padding: 2rem;
+            border-radius: 12px;
+            box-shadow: var(--shadow);
+        }
+        
+        .image-section.active {
+            display: block;
+            animation: fadeIn 0.6s ease-out;
+        }
+        
+        .section-header {
+            text-align: center;
+            margin-bottom: 2rem;
+        }
+        
+        .section-title {
+            font-size: 1.8rem;
+            color: var(--primary-color);
+            margin-bottom: 1rem;
+            position: relative;
+            display: inline-block;
+        }
+        
+        .section-title::after {
+            content: '';
+            position: absolute;
+            bottom: -8px;
+            left: 0;
+            width: 100%;
+            height: 3px;
+            background: var(--secondary-color);
+            border-radius: 3px;
+        }
+        
+        .image-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+            gap: 2rem;
+            align-items: center;
+            justify-items: center;
+        }
+        
+        .image-card {
+            position: relative;
+            width: 100%;
+            border-radius: 10px;
+            overflow: hidden;
+            box-shadow: var(--shadow);
+            transition: var(--transition);
+            cursor: pointer;
+            background: #f1f1f1;
+        }
+        
+        .image-card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 10px 20px rgba(0,0,0,0.15);
+        }
+        
+        .image-card img {
+            width: 100%;
+            height: 250px;
+            object-fit: contain;
+            display: block;
+            transition: var(--transition);
+        }
+        
+        .image-card:hover img {
+            transform: scale(1.03);
+        }
+        
+        .image-caption {
+            padding: 1rem;
+            background: white;
+            text-align: center;
+            font-weight: 500;
+        }
+        
+        /* Modal de imagen completa */
+        .modal {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background-color: rgba(0,0,0,0.9);
+            z-index: 1000;
+            overflow: auto;
+            animation: fadeIn 0.3s;
+        }
+        
+        .modal-content {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            height: 100%;
+            width: 100%;
+            padding: 2rem;
+        }
+        
+        .modal-img {
+            max-width: 90%;
+            max-height: 90%;
+            object-fit: contain;
+            animation: zoomIn 0.3s;
+        }
+        
+        .close-btn {
+            position: absolute;
+            top: 25px;
+            right: 35px;
+            color: white;
+            font-size: 2.5rem;
+            font-weight: bold;
+            cursor: pointer;
+            transition: var(--transition);
+        }
+        
+        .close-btn:hover {
+            color: var(--accent-color);
+            transform: rotate(90deg);
+        }
+        
+        footer {
+            text-align: center;
+            margin-top: 4rem;
+            padding: 1.5rem;
+            color: #7f8c8d;
+            font-size: 0.9rem;
+        }
+        
+        @media (max-width: 768px) {
+            .container {
+                padding: 1.5rem;
+            }
+            
+            h1 {
+                font-size: 2rem;
+            }
+            
+            .button-group {
+                flex-direction: column;
+                align-items: stretch;
+                gap: 0.8rem;
+            }
+            
+            .section-btn {
+                width: 100%;
+                padding: 1rem;
+            }
+            
+            .image-grid {
+                grid-template-columns: 1fr;
+            }
+            
+            .modal-img {
+                max-width: 95%;
+                max-height: 80%;
+            }
+            
+            .close-btn {
+                top: 15px;
+                right: 25px;
+                font-size: 2rem;
+            }
+        }
+        
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(10px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+        
+        @keyframes zoomIn {
+            from { transform: scale(0.9); opacity: 0; }
+            to { transform: scale(1); opacity: 1; }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <header>
+            <h1>Visualizador Técnico UTN</h1>
+            <p>Sistema de visualización de planos y diagramas</p>
+        </header>
+        
+        <div class="button-group">
+            <button class="section-btn active" data-section="recorrido">Recorrido</button>
+            <button class="section-btn" data-section="planta-principal">Planta Principal</button>
+            <button class="section-btn" data-section="cañeria">Cañerías</button>
+        </div>
+        
+        <!-- Sección Recorrido -->
+        <div id="recorrido" class="image-section active">
+            <div class="section-header">
+                <h2 class="section-title">Planos de Recorrido</h2>
+            </div>
+            <div class="image-grid">
+                <div class="image-card" onclick="openModal('https://i.ibb.co/gZffhF2R/Captura-de-pantalla-2025-05-12-141022.jpg')">
+                    <img src="https://i.ibb.co/gZffhF2R/Captura-de-pantalla-2025-05-12-141022.jpg" alt="Diagrama de recorrido técnico">
+                    <div class="image-caption">Diagrama de recorrido</div>
+                </div>
+                <div class="image-card" onclick="openModal('https://www.frlp.utn.edu.ar/sites/default/files/LOGO%20VERTICAL_1.jpg')">
+                    <img src="https://www.frlp.utn.edu.ar/sites/default/files/LOGO%20VERTICAL_1.jpg" alt="Logo UTN FRRLP">
+                    <div class="image-caption">Logo UTN Regional</div>
+                </div>
+            </div>
+        </div>
+        
+        <!-- Sección Planta Principal -->
+        <div id="planta-principal" class="image-section">
+            <div class="section-header">
+                <h2 class="section-title">Planta Principal</h2>
+            </div>
+            <div class="image-grid">
+                <div class="image-card" onclick="openModal('https://i.ibb.co/wZVf9hm9/7.png')">
+                    <img src="https://i.ibb.co/wZVf9hm9/7.png" alt="Plano de planta principal">
+                    <div class="image-caption">Plano principal</div>
+                </div>
+                <div class="image-card" onclick="openModal('https://innovavista.net/imagenes/archivos/proyectos/272_imagen_750x480xrecortarSuperior.jpg?random=1745242407')">
+                    <img src="https://innovavista.net/imagenes/archivos/proyectos/272_imagen_750x480xrecortarSuperior.jpg?random=1745242407" alt="Vista de instalaciones">
+                    <div class="image-caption">Vista de instalaciones</div>
+                </div>
+            </div>
+        </div>
+        
+        <!-- Sección Cañería -->
+        <div id="cañeria" class="image-section">
+            <div class="section-header">
+                <h2 class="section-title">Diagramas de Cañerías</h2>
+            </div>
+            <div class="image-grid">
+                <div class="image-card" onclick="openModal('https://i.ibb.co/MkQZsLXt/Captura-de-pantalla-2025-05-12-140940.jpg')">
+                    <img src="https://i.ibb.co/MkQZsLXt/Captura-de-pantalla-2025-05-12-140940.jpg" alt="Esquema de cañerías">
+                    <div class="image-caption">Esquema de cañerías</div>
+                </div>
+                <div class="image-card" onclick="openModal('https://upload.wikimedia.org/wikipedia/commons/6/67/UTN_logo.jpg')">
+                    <img src="https://upload.wikimedia.org/wikipedia/commons/6/67/UTN_logo.jpg" alt="Logo UTN">
+                    <div class="image-caption">Logo UTN Nacional</div>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <!-- Modal para vista completa -->
+    <div id="imageModal" class="modal">
+        <span class="close-btn" onclick="closeModal()">&times;</span>
+        <div class="modal-content">
+            <img id="expandedImg" class="modal-img" src="" alt="Imagen ampliada">
+        </div>
+    </div>
+    
+    <footer>
+        <p>Sistema de visualización técnica © 2025 - Universidad Tecnológica Nacional</p>
+    </footer>
+    
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            const buttons = document.querySelectorAll('.section-btn');
+            const sections = document.querySelectorAll('.image-section');
+            
+            // Función para cambiar sección
+            function changeSection(sectionId) {
+                buttons.forEach(btn => btn.classList.remove('active'));
+                sections.forEach(section => section.classList.remove('active'));
+                
+                document.querySelector(`[data-section="${sectionId}"]`).classList.add('active');
+                document.getElementById(sectionId).classList.add('active');
+                
+                // Almacenar la sección seleccionada
+                localStorage.setItem('lastSection', sectionId);
+            }
+            
+            // Event listeners para botones
+            buttons.forEach(button => {
+                button.addEventListener('click', function() {
+                    const sectionId = this.getAttribute('data-section');
+                    changeSection(sectionId);
+                });
+            });
+            
+            // Precarga de imágenes
+            const imageUrls = [
+                'https://i.ibb.co/gZffhF2R/Captura-de-pantalla-2025-05-12-141022.jpg',
+                'https://www.frlp.utn.edu.ar/sites/default/files/LOGO%20VERTICAL_1.jpg',
+                'https://i.ibb.co/wZVf9hm9/7.png',
+                'https://innovavista.net/imagenes/archivos/proyectos/272_imagen_750x480xrecortarSuperior.jpg?random=1745242407',
+                'https://i.ibb.co/MkQZsLXt/Captura-de-pantalla-2025-05-12-140940.jpg',
+                'https://upload.wikimedia.org/wikipedia/commons/6/67/UTN_logo.jpg'
+            ];
+            
+            imageUrls.forEach(url => {
+                new Image().src = url;
+            });
+            
+            // Cargar última sección vista
+            const lastSection = localStorage.getItem('lastSection') || 'recorrido';
+            changeSection(lastSection);
+        });
+        
+        // Funciones para el modal
+        function openModal(imgSrc) {
+            const modal = document.getElementById('imageModal');
+            const modalImg = document.getElementById('expandedImg');
+            
+            modal.style.display = 'block';
+            modalImg.src = imgSrc;
+            document.body.style.overflow = 'hidden'; // Deshabilitar scroll
+        }
+        
+        function closeModal() {
+            document.getElementById('imageModal').style.display = 'none';
+            document.body.style.overflow = 'auto'; // Habilitar scroll
+        }
+        
+        // Cerrar modal al hacer clic fuera de la imagen
+        window.onclick = function(event) {
+            const modal = document.getElementById('imageModal');
+            if (event.target == modal) {
+                closeModal();
+            }
+        }
+        
+        // Cerrar modal con tecla ESC
+        document.addEventListener('keydown', function(event) {
+            if (event.key === 'Escape') {
+                closeModal();
+            }
+        });
+    </script>
+</body>
+</html>
