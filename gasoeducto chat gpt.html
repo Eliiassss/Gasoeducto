@@ -1,0 +1,101 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>3D Model Visualizer (GLB & STL)</title>
+    <style>
+        body, html {
+            margin: 0;
+            height: 100%;
+            overflow: hidden;
+            background-color: #1e1e1e;
+        }
+        #viewer {
+            width: 100%;
+            height: 100vh;
+        }
+    </style>
+</head>
+<body>
+    <div id="viewer"></div>
+
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r148/three.min.js" onload="initViewer()"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r148/examples/js/loaders/GLTFLoader.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r148/examples/js/loaders/STLLoader.js"></script>
+    <script>
+        function initViewer() {
+            if (typeof THREE !== 'undefined') {
+                const scene = new THREE.Scene();
+                const camera = new THREE.PerspectiveCamera(75, window.innerWidth / window.innerHeight, 0.1, 1000);
+                const renderer = new THREE.WebGLRenderer({ antialias: true });
+                renderer.setSize(window.innerWidth, window.innerHeight);
+                renderer.setClearColor(0x2e2e2e);
+                document.getElementById('viewer').appendChild(renderer.domElement);
+
+                const light = new THREE.DirectionalLight(0xffffff, 1);
+                light.position.set(1, 1, 1).normalize();
+                scene.add(light);
+
+                const ambientLight = new THREE.AmbientLight(0x404040, 1);
+                scene.add(ambientLight);
+
+                camera.position.z = 5;
+
+                function loadModel(url) {
+                    const extension = url.split('.').pop().toLowerCase();
+
+                    if (extension === 'glb') {
+                        const loader = new THREE.GLTFLoader();
+                        loader.load(url, (gltf) => {
+                            console.log("Modelo GLB cargado correctamente");
+                            scene.clear();
+                            scene.add(gltf.scene);
+                        }, undefined, (error) => {
+                            console.error('Error al cargar el modelo GLB:', error);
+                        });
+                    } else if (extension === 'stl') {
+                        const loader = new THREE.STLLoader();
+                        loader.load(url, (geometry) => {
+                            console.log("Modelo STL cargado correctamente");
+                            scene.clear();
+                            const material = new THREE.MeshNormalMaterial();
+                            const mesh = new THREE.Mesh(geometry, material);
+                            scene.add(mesh);
+
+                            const box = new THREE.Box3().setFromObject(mesh);
+                            const size = box.getSize(new THREE.Vector3()).length();
+                            const center = box.getCenter(new THREE.Vector3());
+
+                            mesh.position.x += (mesh.position.x - center.x);
+                            mesh.position.y += (mesh.position.y - center.y);
+                            mesh.position.z += (mesh.position.z - center.z);
+
+                            camera.position.copy(center);
+                            camera.position.z += size * 1.5;
+                            camera.lookAt(center);
+                        }, undefined, (error) => {
+                            console.error('Error al cargar el modelo STL:', error);
+                        });
+                    } else {
+                        console.error("Formato no soportado.");
+                    }
+                }
+
+                // Carga del modelo STL de prueba
+                const modelURL = "https://raw.githubusercontent.com/mrdoob/three.js/dev/examples/models/stl/ascii/pr2_head_pan.stl";
+                console.log("Intentando cargar el modelo desde:", modelURL);
+                loadModel(modelURL);
+
+                function animate() {
+                    requestAnimationFrame(animate);
+                    renderer.render(scene, camera);
+                }
+                animate();
+            } else {
+                console.error("Three.js no se ha cargado correctamente.");
+            }
+        }
+    </script>
+</body>
+</html>
